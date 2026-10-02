@@ -1,0 +1,3 @@
+[submodule "NaturalLib"]
+	path = NaturalLib
+	url = https://github.com/MatthewCarven/Natural.git
