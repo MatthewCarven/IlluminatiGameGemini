@@ -110,7 +110,6 @@ namespace IlluminatiIdle
             Console.CursorVisible = false;
             Console.Clear();
             
-            // Automatically load game on start
             LoadGame();
             
             DateTime lastTick = DateTime.Now;
@@ -135,7 +134,6 @@ namespace IlluminatiIdle
                     }
                     else if (key == ConsoleKey.Escape)
                     {
-                        // Automatically save on exit
                         SaveGame();
                         break;
                     }
@@ -216,7 +214,7 @@ namespace IlluminatiIdle
             ApFloat shardsToGain = TotalDP / threshold;
             InfluenceShards = InfluenceShards + shardsToGain;
             
-            TotalPrestiges++; // Increase threshold for next time
+            TotalPrestiges++;
             
             TotalDP = 0;
             InfoDamage = 0;
@@ -319,72 +317,97 @@ namespace IlluminatiIdle
             }
         }
 
+        static string FormatNum(ApFloat val)
+        {
+            // Use G6 formatting to limit to 6 significant digits. Large numbers automatically switch to scientific notation.
+            return val.ToString("G6");
+        }
+
         static string Pad(string text, int width)
         {
-            if (text.Length >= width) return text;
+            if (text.Length >= width) return text.Substring(0, width);
             return text + new string(' ', width - text.Length);
         }
 
+        static int lastWidth = -1;
+        static int lastHeight = -1;
+
         static void DrawUI()
         {
+            int currentWidth = Console.WindowWidth;
+            int currentHeight = Console.WindowHeight;
+            
+            // Clear the screen entirely if the console was resized
+            if (currentWidth != lastWidth || currentHeight != lastHeight)
+            {
+                Console.Clear();
+                lastWidth = currentWidth;
+                lastHeight = currentHeight;
+            }
+            
             Console.SetCursorPosition(0, 0);
             
-            Console.WriteLine(Pad("=== ILLUMINATI IDLE ===", 85));
-            Console.WriteLine(Pad($"Total DP: {TotalDP}", 85));
-            Console.WriteLine(Pad($"Multiplier: {CurrentMultiplier()}x", 85));
+            // Limit drawing width to avoid implicit line wrapping (subtract 1)
+            int w = Math.Max(currentWidth - 1, 50); 
+            
+            Console.WriteLine(Pad("=== ILLUMINATI IDLE ===", w));
+            Console.WriteLine(Pad($"Total DP: {FormatNum(TotalDP)}", w));
+            Console.WriteLine(Pad($"Multiplier: {FormatNum(CurrentMultiplier())}x", w));
             
             if (InfluenceShards > (ApFloat)0) 
-                Console.WriteLine(Pad($"Prestige Shards: {InfluenceShards} (Times Reset: {TotalPrestiges})", 85));
+                Console.WriteLine(Pad($"Prestige Shards: {FormatNum(InfluenceShards)} (Times Reset: {TotalPrestiges})", w));
             else 
-                Console.WriteLine(Pad("", 85));
+                Console.WriteLine(Pad("", w));
             
-            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
+            Console.WriteLine(Pad(new string('-', w), w));
             
-            Console.WriteLine(Pad($"Info Damage:   {InfoDamage}", 85));
-            Console.WriteLine(Pad($"Econ Damage:   {EconDamage}", 85));
-            Console.WriteLine(Pad($"Health Damage: {HealthDamage}", 85));
-            Console.WriteLine(Pad($"Social Damage: {SocialDamage}", 85));
-            Console.WriteLine(Pad($"Control Damage:{ControlDamage}", 85));
+            Console.WriteLine(Pad($"Info Damage:   {FormatNum(InfoDamage)}", w));
+            Console.WriteLine(Pad($"Econ Damage:   {FormatNum(EconDamage)}", w));
+            Console.WriteLine(Pad($"Health Damage: {FormatNum(HealthDamage)}", w));
+            Console.WriteLine(Pad($"Social Damage: {FormatNum(SocialDamage)}", w));
+            Console.WriteLine(Pad($"Control Damage:{FormatNum(ControlDamage)}", w));
             
-            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
-            Console.WriteLine(Pad("GENERATORS:", 85));
+            Console.WriteLine(Pad(new string('-', w), w));
+            Console.WriteLine(Pad("GENERATORS:", w));
             
             foreach (var g in Generators)
             {
-                string s = $"[{g.KeyName}] {g.Name} (Owned: {g.Count}) | Cost: {g.GetCost()} | Output: +{g.BaseOutput} {g.Category}/sec";
-                Console.WriteLine(Pad(s, 85));
+                string s = $"[{g.KeyName}] {g.Name} (Owned: {g.Count}) | Cost: {FormatNum(g.GetCost())} | Output: +{g.BaseOutput} {g.Category}/sec";
+                Console.WriteLine(Pad(s, w));
             }
 
-            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
-            Console.WriteLine(Pad("INITIATIVES (Permanent Multipliers):", 85));
+            Console.WriteLine(Pad(new string('-', w), w));
+            Console.WriteLine(Pad("INITIATIVES (Permanent Multipliers):", w));
             
             for (int i = 0; i < Initiatives.Count; i += 2)
             {
                 var i1 = Initiatives[i];
                 var i2 = Initiatives[i+1];
-                string s1 = $"[{i1.KeyName}] {i1.Name} ({(i1.Owned ? "OWNED" : i1.Cost.ToString())})";
-                string s2 = $"[{i2.KeyName}] {i2.Name} ({(i2.Owned ? "OWNED" : i2.Cost.ToString())})";
-                Console.WriteLine(Pad($"{Pad(s1, 40)} | {s2}", 85));
+                string s1 = $"[{i1.KeyName}] {i1.Name} ({(i1.Owned ? "OWNED" : FormatNum((ApFloat)i1.Cost))})";
+                string s2 = $"[{i2.KeyName}] {i2.Name} ({(i2.Owned ? "OWNED" : FormatNum((ApFloat)i2.Cost))})";
+                
+                int halfWidth = w / 2;
+                Console.WriteLine(Pad($"{Pad(s1, halfWidth - 2)} | {s2}", w));
             }
             
-            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
-            Console.WriteLine(Pad("[SPACE] Exert Influence (Click)", 85));
+            Console.WriteLine(Pad(new string('-', w), w));
+            Console.WriteLine(Pad("[SPACE] Exert Influence (Click)", w));
             
             ApFloat currentThreshold = GetPrestigeThreshold();
             if (TotalDP >= currentThreshold)
-                Console.WriteLine(Pad($"[P] Enact New World Order (Prestige for Shards!)", 85));
+                Console.WriteLine(Pad($"[P] Enact New World Order (Prestige for Shards!)", w));
             else
-                Console.WriteLine(Pad($"[P] New World Order unlocks at {currentThreshold} DP", 85));
+                Console.WriteLine(Pad($"[P] New World Order unlocks at {FormatNum(currentThreshold)} DP", w));
             
-            Console.WriteLine(Pad("[ESC] Save and Quit", 85));
+            Console.WriteLine(Pad("[ESC] Save and Quit", w));
             
             if (!string.IsNullOrEmpty(SaveStatus))
             {
-                Console.WriteLine(Pad(">>> " + SaveStatus, 85));
+                Console.WriteLine(Pad(">>> " + SaveStatus, w));
             }
             else
             {
-                Console.WriteLine(Pad("", 85));
+                Console.WriteLine(Pad("", w));
             }
         }
     }
