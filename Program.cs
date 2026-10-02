@@ -1,0 +1,391 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Globalization;
+using Natural;
+
+namespace IlluminatiIdle
+{
+    class Generator
+    {
+        public string Name;
+        public string Category;
+        public long Count;
+        public long BaseCost;
+        public long BaseOutput;
+        public ConsoleKey Key;
+        public string KeyName;
+
+        public ApFloat GetCost() => (ApFloat)BaseCost * (ApFloat)(Count + 1) * (ApFloat)(Count + 1);
+    }
+
+    class Initiative
+    {
+        public string Name;
+        public string Category;
+        public bool Owned;
+        public long Cost;
+        public long Multiplier;
+        public ConsoleKey Key;
+        public string KeyName;
+    }
+
+    class Program
+    {
+        static ApFloat TotalDP = 0;
+        static ApFloat InfluenceShards = 0;
+        static long TotalPrestiges = 0;
+        
+        static ApFloat InfoDamage = 0;
+        static ApFloat EconDamage = 0;
+        static ApFloat HealthDamage = 0;
+        static ApFloat SocialDamage = 0;
+        static ApFloat ControlDamage = 0;
+        
+        static ApFloat BaseClick = 1;
+        
+        static string SaveStatus = "";
+
+        static List<Generator> Generators = new List<Generator>
+        {
+            new Generator { Name = "Troll Farms", Category = "Info", BaseCost = 10, BaseOutput = 1, Key = ConsoleKey.D1, KeyName = "1" },
+            new Generator { Name = "Deepfake Anchors", Category = "Info", BaseCost = 500, BaseOutput = 25, Key = ConsoleKey.D2, KeyName = "2" },
+            
+            new Generator { Name = "Predatory Lenders", Category = "Econ", BaseCost = 25, BaseOutput = 2, Key = ConsoleKey.D3, KeyName = "3" },
+            new Generator { Name = "Corporate Cartels", Category = "Econ", BaseCost = 1250, BaseOutput = 50, Key = ConsoleKey.D4, KeyName = "4" },
+            
+            new Generator { Name = "Processed Food", Category = "Health", BaseCost = 50, BaseOutput = 4, Key = ConsoleKey.D5, KeyName = "5" },
+            new Generator { Name = "VR Sedentarism", Category = "Health", BaseCost = 2500, BaseOutput = 100, Key = ConsoleKey.D6, KeyName = "6" },
+            
+            new Generator { Name = "Agent Provocateurs", Category = "Social", BaseCost = 100, BaseOutput = 8, Key = ConsoleKey.D7, KeyName = "7" },
+            new Generator { Name = "Algorithmic Cults", Category = "Social", BaseCost = 5000, BaseOutput = 200, Key = ConsoleKey.D8, KeyName = "8" },
+            
+            new Generator { Name = "Mass Surveillance", Category = "Control", BaseCost = 10000, BaseOutput = 500, Key = ConsoleKey.D9, KeyName = "9" },
+            new Generator { Name = "Social Credit System", Category = "Control", BaseCost = 50000, BaseOutput = 2500, Key = ConsoleKey.D0, KeyName = "0" }
+        };
+
+        static List<Initiative> Initiatives = new List<Initiative>
+        {
+            new Initiative { Name = "Echo Chambers", Category = "Info", Cost = 1000, Multiplier = 5, Key = ConsoleKey.Q, KeyName = "Q" },
+            new Initiative { Name = "Reality Revision", Category = "Info", Cost = 50000, Multiplier = 10, Key = ConsoleKey.A, KeyName = "A" },
+            
+            new Initiative { Name = "Planned Obsolescence", Category = "Econ", Cost = 5000, Multiplier = 5, Key = ConsoleKey.W, KeyName = "W" },
+            new Initiative { Name = "Infinite Subscriptions", Category = "Econ", Cost = 250000, Multiplier = 10, Key = ConsoleKey.S, KeyName = "S" },
+            
+            new Initiative { Name = "Microplastics", Category = "Health", Cost = 25000, Multiplier = 5, Key = ConsoleKey.E, KeyName = "E" },
+            new Initiative { Name = "Forever Chemicals", Category = "Health", Cost = 1250000, Multiplier = 10, Key = ConsoleKey.D, KeyName = "D" },
+            
+            new Initiative { Name = "Culture Wars", Category = "Social", Cost = 100000, Multiplier = 5, Key = ConsoleKey.R, KeyName = "R" },
+            new Initiative { Name = "Hyper-Individualism", Category = "Social", Cost = 5000000, Multiplier = 10, Key = ConsoleKey.F, KeyName = "F" },
+            
+            new Initiative { Name = "Predictive Policing", Category = "Control", Cost = 500000, Multiplier = 5, Key = ConsoleKey.G, KeyName = "G" },
+            new Initiative { Name = "Mandatory Biometrics", Category = "Control", Cost = 2500000, Multiplier = 10, Key = ConsoleKey.T, KeyName = "T" },
+            new Initiative { Name = "Drone Enforcers", Category = "Control", Cost = 12500000, Multiplier = 15, Key = ConsoleKey.Y, KeyName = "Y" },
+            new Initiative { Name = "Total Neural Override", Category = "Control", Cost = 50000000, Multiplier = 20, Key = ConsoleKey.H, KeyName = "H" }
+        };
+
+        static ApFloat CurrentMultiplier()
+        {
+            ApFloat one = (ApFloat)1;
+            ApFloat prestigeMult = one + InfluenceShards;
+            return prestigeMult * (one + InfoDamage) * (one + EconDamage) * (one + HealthDamage) * (one + SocialDamage) * (one + ControlDamage);
+        }
+        
+        static ApFloat GetPrestigeThreshold()
+        {
+            ApFloat threshold = (ApFloat)1000000;
+            for (int i = 0; i < TotalPrestiges; i++)
+            {
+                threshold = threshold * (ApFloat)10;
+            }
+            return threshold;
+        }
+
+        static void Main(string[] args)
+        {
+            Console.CursorVisible = false;
+            Console.Clear();
+            
+            // Automatically load game on start
+            LoadGame();
+            
+            DateTime lastTick = DateTime.Now;
+            DrawUI();
+            
+            while (true)
+            {
+                if (Console.KeyAvailable)
+                {
+                    var keyInfo = Console.ReadKey(true);
+                    var key = keyInfo.Key;
+                    
+                    if (key == ConsoleKey.Spacebar)
+                    {
+                        TotalDP = TotalDP + (BaseClick * CurrentMultiplier());
+                        SaveStatus = "";
+                        DrawUI();
+                    }
+                    else if (key == ConsoleKey.P && TotalDP >= GetPrestigeThreshold())
+                    {
+                        Prestige();
+                    }
+                    else if (key == ConsoleKey.Escape)
+                    {
+                        // Automatically save on exit
+                        SaveGame();
+                        break;
+                    }
+                    else
+                    {
+                        var gen = Generators.FirstOrDefault(g => g.Key == key);
+                        if (gen != null)
+                        {
+                            ApFloat cost = gen.GetCost();
+                            if (TotalDP >= cost)
+                            {
+                                TotalDP = TotalDP - cost;
+                                gen.Count++;
+                                SaveStatus = "";
+                                DrawUI();
+                            }
+                        }
+                        
+                        var init = Initiatives.FirstOrDefault(i => i.Key == key);
+                        if (init != null && !init.Owned)
+                        {
+                            ApFloat cost = (ApFloat)init.Cost;
+                            if (TotalDP >= cost)
+                            {
+                                TotalDP = TotalDP - cost;
+                                init.Owned = true;
+                                SaveStatus = "";
+                                DrawUI();
+                            }
+                        }
+                    }
+                }
+                
+                DateTime now = DateTime.Now;
+                if ((now - lastTick).TotalMilliseconds >= 1000)
+                {
+                    lastTick = now;
+                    
+                    ApFloat infoTick = CalculateTick("Info");
+                    ApFloat econTick = CalculateTick("Econ");
+                    ApFloat healthTick = CalculateTick("Health");
+                    ApFloat socialTick = CalculateTick("Social");
+                    ApFloat controlTick = CalculateTick("Control");
+                    
+                    InfoDamage = InfoDamage + infoTick;
+                    EconDamage = EconDamage + econTick;
+                    HealthDamage = HealthDamage + healthTick;
+                    SocialDamage = SocialDamage + socialTick;
+                    ControlDamage = ControlDamage + controlTick;
+                    
+                    DrawUI();
+                }
+                
+                Thread.Sleep(50);
+            }
+        }
+        
+        static ApFloat CalculateTick(string category)
+        {
+            ApFloat tick = 0;
+            foreach (var gen in Generators.Where(g => g.Category == category))
+            {
+                tick = tick + (ApFloat)(gen.Count * gen.BaseOutput);
+            }
+            
+            long multiplier = 1;
+            foreach (var init in Initiatives.Where(i => i.Category == category && i.Owned))
+            {
+                multiplier *= init.Multiplier;
+            }
+            
+            return tick * (ApFloat)multiplier;
+        }
+
+        static void Prestige()
+        {
+            ApFloat threshold = GetPrestigeThreshold();
+            ApFloat shardsToGain = TotalDP / threshold;
+            InfluenceShards = InfluenceShards + shardsToGain;
+            
+            TotalPrestiges++; // Increase threshold for next time
+            
+            TotalDP = 0;
+            InfoDamage = 0;
+            EconDamage = 0;
+            HealthDamage = 0;
+            SocialDamage = 0;
+            ControlDamage = 0;
+            
+            foreach (var gen in Generators) gen.Count = 0;
+            foreach (var init in Initiatives) init.Owned = false;
+            
+            SaveStatus = "Timeline Reset for the New World Order.";
+            Console.Clear();
+            DrawUI();
+        }
+
+        static void SaveGame()
+        {
+            try
+            {
+                var lines = new List<string> {
+                    TotalDP.ToString("R", CultureInfo.InvariantCulture),
+                    InfluenceShards.ToString("R", CultureInfo.InvariantCulture),
+                    TotalPrestiges.ToString(),
+                    InfoDamage.ToString("R", CultureInfo.InvariantCulture),
+                    EconDamage.ToString("R", CultureInfo.InvariantCulture),
+                    HealthDamage.ToString("R", CultureInfo.InvariantCulture),
+                    SocialDamage.ToString("R", CultureInfo.InvariantCulture),
+                    ControlDamage.ToString("R", CultureInfo.InvariantCulture),
+                    string.Join(",", Generators.Select(g => g.Count)),
+                    string.Join(",", Initiatives.Select(i => i.Owned))
+                };
+                
+                string content = string.Join("\n", lines);
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(content + "IlluminatiSecretSalt"));
+                    lines.Add(Convert.ToBase64String(hash));
+                }
+                File.WriteAllLines("savegame.sav", lines);
+                SaveStatus = "Game saved successfully.";
+            }
+            catch (Exception ex)
+            {
+                SaveStatus = "Error saving game: " + ex.Message;
+            }
+        }
+
+        static void LoadGame()
+        {
+            if (!File.Exists("savegame.sav"))
+            {
+                SaveStatus = "";
+                return;
+            }
+            
+            try
+            {
+                var lines = File.ReadAllLines("savegame.sav");
+                if (lines.Length < 11)
+                {
+                    SaveStatus = "Save file is corrupted.";
+                    return;
+                }
+                
+                string content = string.Join("\n", lines.Take(10));
+                using (SHA256 sha256 = SHA256.Create())
+                {
+                    byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(content + "IlluminatiSecretSalt"));
+                    string expectedHash = Convert.ToBase64String(hash);
+                    if (expectedHash != lines[10])
+                    {
+                        SaveStatus = "Save file tampering detected! Loading aborted.";
+                        return;
+                    }
+                }
+                
+                TotalDP = ApFloat.Parse(lines[0], CultureInfo.InvariantCulture);
+                InfluenceShards = ApFloat.Parse(lines[1], CultureInfo.InvariantCulture);
+                TotalPrestiges = long.Parse(lines[2]);
+                InfoDamage = ApFloat.Parse(lines[3], CultureInfo.InvariantCulture);
+                EconDamage = ApFloat.Parse(lines[4], CultureInfo.InvariantCulture);
+                HealthDamage = ApFloat.Parse(lines[5], CultureInfo.InvariantCulture);
+                SocialDamage = ApFloat.Parse(lines[6], CultureInfo.InvariantCulture);
+                ControlDamage = ApFloat.Parse(lines[7], CultureInfo.InvariantCulture);
+                
+                var genCounts = lines[8].Split(',').Select(long.Parse).ToArray();
+                for (int i = 0; i < Generators.Count && i < genCounts.Length; i++)
+                    Generators[i].Count = genCounts[i];
+                    
+                var initOwned = lines[9].Split(',').Select(bool.Parse).ToArray();
+                for (int i = 0; i < Initiatives.Count && i < initOwned.Length; i++)
+                    Initiatives[i].Owned = initOwned[i];
+                    
+                SaveStatus = "Game loaded successfully.";
+            }
+            catch (Exception ex)
+            {
+                SaveStatus = "Error loading game: " + ex.Message;
+            }
+        }
+
+        static string Pad(string text, int width)
+        {
+            if (text.Length >= width) return text;
+            return text + new string(' ', width - text.Length);
+        }
+
+        static void DrawUI()
+        {
+            Console.SetCursorPosition(0, 0);
+            
+            Console.WriteLine(Pad("=== ILLUMINATI IDLE ===", 85));
+            Console.WriteLine(Pad($"Total DP: {TotalDP}", 85));
+            Console.WriteLine(Pad($"Multiplier: {CurrentMultiplier()}x", 85));
+            
+            if (InfluenceShards > (ApFloat)0) 
+                Console.WriteLine(Pad($"Prestige Shards: {InfluenceShards} (Times Reset: {TotalPrestiges})", 85));
+            else 
+                Console.WriteLine(Pad("", 85));
+            
+            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
+            
+            Console.WriteLine(Pad($"Info Damage:   {InfoDamage}", 85));
+            Console.WriteLine(Pad($"Econ Damage:   {EconDamage}", 85));
+            Console.WriteLine(Pad($"Health Damage: {HealthDamage}", 85));
+            Console.WriteLine(Pad($"Social Damage: {SocialDamage}", 85));
+            Console.WriteLine(Pad($"Control Damage:{ControlDamage}", 85));
+            
+            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
+            Console.WriteLine(Pad("GENERATORS:", 85));
+            
+            foreach (var g in Generators)
+            {
+                string s = $"[{g.KeyName}] {g.Name} (Owned: {g.Count}) | Cost: {g.GetCost()} | Output: +{g.BaseOutput} {g.Category}/sec";
+                Console.WriteLine(Pad(s, 85));
+            }
+
+            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
+            Console.WriteLine(Pad("INITIATIVES (Permanent Multipliers):", 85));
+            
+            for (int i = 0; i < Initiatives.Count; i += 2)
+            {
+                var i1 = Initiatives[i];
+                var i2 = Initiatives[i+1];
+                string s1 = $"[{i1.KeyName}] {i1.Name} ({(i1.Owned ? "OWNED" : i1.Cost.ToString())})";
+                string s2 = $"[{i2.KeyName}] {i2.Name} ({(i2.Owned ? "OWNED" : i2.Cost.ToString())})";
+                Console.WriteLine(Pad($"{Pad(s1, 40)} | {s2}", 85));
+            }
+            
+            Console.WriteLine(Pad("-------------------------------------------------------------------------------------", 85));
+            Console.WriteLine(Pad("[SPACE] Exert Influence (Click)", 85));
+            
+            ApFloat currentThreshold = GetPrestigeThreshold();
+            if (TotalDP >= currentThreshold)
+                Console.WriteLine(Pad($"[P] Enact New World Order (Prestige for Shards!)", 85));
+            else
+                Console.WriteLine(Pad($"[P] New World Order unlocks at {currentThreshold} DP", 85));
+            
+            Console.WriteLine(Pad("[ESC] Save and Quit", 85));
+            
+            if (!string.IsNullOrEmpty(SaveStatus))
+            {
+                Console.WriteLine(Pad(">>> " + SaveStatus, 85));
+            }
+            else
+            {
+                Console.WriteLine(Pad("", 85));
+            }
+        }
+    }
+}
