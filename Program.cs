@@ -319,8 +319,8 @@ namespace IlluminatiIdle
 
         static string FormatNum(ApFloat val)
         {
-            // Use G12 formatting to limit to 12 significant digits. Large numbers automatically switch to scientific notation.
-            return val.ToString("G12");
+            // Use F12 formatting to limit to 12 digits after the decimal point.
+            return val.ToString("F12");
         }
 
         static string Pad(string text, int width)
