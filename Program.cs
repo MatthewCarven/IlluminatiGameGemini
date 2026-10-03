@@ -319,8 +319,17 @@ namespace IlluminatiIdle
 
         static string FormatNum(ApFloat val)
         {
-            // Use F12 formatting to limit to 12 digits after the decimal point.
-            return val.ToString("F12");
+            string s = val.ToString("F12");
+            int dotIndex = s.IndexOf('.');
+            if (dotIndex == -1) dotIndex = s.Length;
+            
+            string intPart = s.Substring(0, dotIndex);
+            for (int i = intPart.Length - 3; i > (intPart.StartsWith("-") ? 1 : 0); i -= 3)
+            {
+                intPart = intPart.Insert(i, ",");
+            }
+            
+            return intPart + (dotIndex < s.Length ? s.Substring(dotIndex) : "");
         }
 
         static string Pad(string text, int width)
