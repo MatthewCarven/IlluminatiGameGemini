@@ -20,7 +20,11 @@ namespace IlluminatiIdle
         public ConsoleKey Key;
         public string KeyName;
 
-        public ApFloat GetCost(ApFloat multiplier) => (ApFloat)BaseCost * (ApFloat)(Count + 1) * (ApFloat)(Count + 1) * multiplier;
+        public ApFloat GetCost(ApFloat multiplier)
+        {
+            ApFloat discount = ApFloat.Parse("0.98", System.Globalization.CultureInfo.InvariantCulture);
+            return (ApFloat)BaseCost * (ApFloat)(Count + 1) * (ApFloat)(Count + 1) * (multiplier * discount);
+        }
     }
 
     class Initiative
