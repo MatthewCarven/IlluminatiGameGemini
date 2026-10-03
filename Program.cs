@@ -319,17 +319,29 @@ namespace IlluminatiIdle
 
         static string FormatNum(ApFloat val)
         {
-            string s = val.ToString("F12");
-            int dotIndex = s.IndexOf('.');
-            if (dotIndex == -1) dotIndex = s.Length;
-            
-            string intPart = s.Substring(0, dotIndex);
-            for (int i = intPart.Length - 3; i > (intPart.StartsWith("-") ? 1 : 0); i -= 3)
+            string s;
+            ApFloat trillion = ApFloat.Parse("1000000000000", System.Globalization.CultureInfo.InvariantCulture);
+            if (val >= trillion)
             {
-                intPart = intPart.Insert(i, ",");
+                s = val.ToString("E12");
+            }
+            else
+            {
+                s = val.ToString("F12");
+                int dotIndex = s.IndexOf('.');
+                if (dotIndex == -1) dotIndex = s.Length;
+                
+                string intPart = s.Substring(0, dotIndex);
+                for (int i = intPart.Length - 3; i > (intPart.StartsWith("-") ? 1 : 0); i -= 3)
+                {
+                    intPart = intPart.Insert(i, ",");
+                }
+                
+                s = intPart + (dotIndex < s.Length ? s.Substring(dotIndex) : "");
             }
             
-            return intPart + (dotIndex < s.Length ? s.Substring(dotIndex) : "");
+            // Pad to a fixed width of 28 characters to keep the UI perfectly aligned
+            return s.PadLeft(28);
         }
 
         static string Pad(string text, int width)
