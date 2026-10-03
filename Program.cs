@@ -20,7 +20,7 @@ namespace IlluminatiIdle
         public ConsoleKey Key;
         public string KeyName;
 
-        public ApFloat GetCost() => (ApFloat)BaseCost * (ApFloat)(Count + 1) * (ApFloat)(Count + 1);
+        public ApFloat GetCost(ApFloat multiplier) => (ApFloat)BaseCost * (ApFloat)(Count + 1) * (ApFloat)(Count + 1) * multiplier;
     }
 
     class Initiative
@@ -142,7 +142,7 @@ namespace IlluminatiIdle
                         var gen = Generators.FirstOrDefault(g => g.Key == key);
                         if (gen != null)
                         {
-                            ApFloat cost = gen.GetCost();
+                            ApFloat cost = gen.GetCost(CurrentMultiplier());
                             if (TotalDP >= cost)
                             {
                                 TotalDP = TotalDP - cost;
@@ -393,7 +393,7 @@ namespace IlluminatiIdle
             
             foreach (var g in Generators)
             {
-                string s = $"[{g.KeyName}] {g.Name} (Owned: {g.Count}) | Cost: {FormatNum(g.GetCost())} | Output: +{g.BaseOutput} {g.Category}/sec";
+                string s = $"[{g.KeyName}] {g.Name} (Owned: {g.Count}) | Cost: {FormatNum(g.GetCost(CurrentMultiplier()))} | Output: +{g.BaseOutput} {g.Category}/sec";
                 Console.WriteLine(Pad(s, w));
             }
 
