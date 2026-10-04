@@ -112,7 +112,40 @@ namespace IlluminatiIdle
             return threshold;
         }
 
-        static void Main(string[] args)
+                public static void Main(string[] args)
+        {
+            if (args.Length > 0 && args[0].ToLower() == "--tui")
+            {
+                LoadGame();
+                TuiEngine.Run();
+                return;
+            }
+            if (args.Length > 0 && args[0].ToLower() == "--console")
+            {
+                RunConsoleVersion();
+                return;
+            }
+
+            Console.Clear();
+            Console.WriteLine("=== ILLUMINATI IDLE ===");
+            Console.WriteLine("Choose your interface:");
+            Console.WriteLine("1. TUI (Hacker Command Center)");
+            Console.WriteLine("2. Console (Classic Text Stream)");
+            Console.Write("Enter choice [1/2]: ");
+            
+            var key = Console.ReadKey().KeyChar;
+            if (key == '1')
+            {
+                LoadGame();
+                TuiEngine.Run();
+            }
+            else
+            {
+                RunConsoleVersion();
+            }
+        }
+
+        public static void RunConsoleVersion()
         {
             Console.CursorVisible = false;
             Console.Clear();
@@ -456,6 +489,9 @@ namespace IlluminatiIdle
         }
     }
 }
+
+
+
 
 
 
