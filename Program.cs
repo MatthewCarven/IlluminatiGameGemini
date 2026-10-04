@@ -10,7 +10,7 @@ using Natural;
 
 namespace IlluminatiIdle
 {
-    class Generator
+    public class Generator
     {
         public string Name;
         public string Category;
@@ -30,7 +30,7 @@ namespace IlluminatiIdle
         }
     }
 
-    class Initiative
+    public class Initiative
     {
         public string Name;
         public string Category;
@@ -44,20 +44,20 @@ namespace IlluminatiIdle
     public class Program
     {
         public static ApFloat TotalDP = 0;
-        static ApFloat InfluenceShards = 0;
-        static ApFloat TotalPrestiges = 0;
+        public static ApFloat InfluenceShards = 0;
+        public static ApFloat TotalPrestiges = 0;
         
-        static ApFloat InfoDamage = 0;
-        static ApFloat EconDamage = 0;
-        static ApFloat HealthDamage = 0;
-        static ApFloat SocialDamage = 0;
-        static ApFloat ControlDamage = 0;
+        public static ApFloat InfoDamage = 0;
+        public static ApFloat EconDamage = 0;
+        public static ApFloat HealthDamage = 0;
+        public static ApFloat SocialDamage = 0;
+        public static ApFloat ControlDamage = 0;
         
-        static ApFloat BaseClick = 1;
+        public static ApFloat BaseClick = 1;
         
-        static string SaveStatus = "";
+        public static string SaveStatus = "";
 
-        static List<Generator> Generators = new List<Generator>
+        public static List<Generator> Generators = new List<Generator>
         {
             new Generator { Name = "Troll Farms         ", Category = "Info   ", BaseCost = 10, BaseOutput = 1, Key = ConsoleKey.D1, KeyName = "1" },
             new Generator { Name = "Deepfake Anchors    ", Category = "Info   ", BaseCost = 500, BaseOutput = 25, Key = ConsoleKey.D2, KeyName = "2" },
@@ -75,7 +75,7 @@ namespace IlluminatiIdle
             new Generator { Name = "Social Credit System", Category = "Control", BaseCost = 50000, BaseOutput = 2500, Key = ConsoleKey.D0, KeyName = "0" }
         };
 
-        static List<Initiative> Initiatives = new List<Initiative>
+        public static List<Initiative> Initiatives = new List<Initiative>
         {
             new Initiative { Name = "Echo Chambers         ", Category = "Info", Cost = 1000, Multiplier = 5, Key = ConsoleKey.Q, KeyName = "Q" },
             new Initiative { Name = "Reality Revision      ", Category = "Info", Cost = 50000, Multiplier = 10, Key = ConsoleKey.A, KeyName = "A" },
@@ -95,14 +95,14 @@ namespace IlluminatiIdle
             new Initiative { Name = "Total Neural Override ", Category = "Control", Cost = 50000000, Multiplier = 20, Key = ConsoleKey.H, KeyName = "H" }
         };
 
-        static ApFloat CurrentMultiplier()
+        public static ApFloat CurrentMultiplier()
         {
             ApFloat one = 1;
             ApFloat prestigeMult = one + InfluenceShards;
             return prestigeMult * (one + InfoDamage) * (one + EconDamage) * (one + HealthDamage) * (one + SocialDamage) * (one + ControlDamage);
         }
         
-        static ApFloat GetPrestigeThreshold()
+        public static ApFloat GetPrestigeThreshold()
         {
             ApFloat threshold = 1000000;
             for (int i = 0; i < TotalPrestiges; i++)
@@ -213,7 +213,7 @@ namespace IlluminatiIdle
             }
         }
         
-        static ApFloat CalculateTick(string category)
+        public static ApFloat CalculateTick(string category)
         {
             ApFloat tick = 0;
             foreach (var gen in Generators.Where(g => g.Category.Trim() == category))
@@ -230,7 +230,7 @@ namespace IlluminatiIdle
             return tick * multiplier;
         }
 
-        static void Prestige()
+        public static void Prestige()
         {
             ApFloat threshold = GetPrestigeThreshold();
             ApFloat shardsToGain = TotalDP / threshold;
@@ -253,7 +253,7 @@ namespace IlluminatiIdle
             DrawUI();
         }
 
-        static void SaveGame()
+        public static void SaveGame()
         {
             try
             {
@@ -285,7 +285,7 @@ namespace IlluminatiIdle
             }
         }
 
-        static void LoadGame()
+        public static void LoadGame()
         {
             if (!File.Exists("savegame.sav"))
             {
@@ -339,7 +339,7 @@ namespace IlluminatiIdle
             }
         }
 
-        static string FormatNum(ApFloat val)
+        public static string FormatNum(ApFloat val)
         {
             string s;
             ApFloat trillion = ApFloat.Parse("1000000000000", System.Globalization.CultureInfo.InvariantCulture);
@@ -456,3 +456,7 @@ namespace IlluminatiIdle
         }
     }
 }
+
+
+
+
