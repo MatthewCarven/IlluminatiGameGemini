@@ -19,4 +19,8 @@
     <ProjectReference Include="NaturalLib\Natural_Playground\Natural_Playground.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Terminal.Gui" Version="2.5.0" />
+  </ItemGroup>
+
 </Project>
