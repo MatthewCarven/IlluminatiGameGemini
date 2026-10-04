@@ -43,6 +43,7 @@ namespace IlluminatiIdle
 
     public class Program
     {
+        static string SaveFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "savegame.sav");
         public static ApFloat TotalDP = 0;
         static ApFloat InfluenceShards = 0;
         static ApFloat TotalPrestiges = 0;
@@ -209,7 +210,7 @@ namespace IlluminatiIdle
                     DrawUI();
                 }
                 
-                //Thread.Sleep(1);
+                Thread.Sleep(1);
             }
         }
         
@@ -276,7 +277,7 @@ namespace IlluminatiIdle
                     byte[] hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(content + "IlluminatiSecretSalt"));
                     lines.Add(Convert.ToBase64String(hash));
                 }
-                File.WriteAllLines("savegame.sav", lines);
+                File.WriteAllLines(SaveFilePath, lines);
                 SaveStatus = "Game saved successfully.";
             }
             catch (Exception ex)
@@ -287,7 +288,7 @@ namespace IlluminatiIdle
 
         static void LoadGame()
         {
-            if (!File.Exists("savegame.sav"))
+            if (!File.Exists(SaveFilePath))
             {
                 SaveStatus = "";
                 return;
@@ -295,7 +296,7 @@ namespace IlluminatiIdle
             
             try
             {
-                var lines = File.ReadAllLines("savegame.sav");
+                var lines = File.ReadAllLines(SaveFilePath);
                 if (lines.Length < 11)
                 {
                     SaveStatus = "Save file is corrupted.";
