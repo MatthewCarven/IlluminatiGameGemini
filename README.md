@@ -4,6 +4,9 @@ A sinister, infinitely scaling idle game where you play as a shadowy cabal aimin
 
 ## Overview
 Built as a C# Console prototype, this game utilizes the [Natural](https://github.com/MatthewCarven/Natural) library (`ApFloat`) to handle massive, arbitrary-precision numbers, ensuring that your Damage Points (DP) can scale infinitely without ever overflowing or capping out.
+<img width="1312" height="894" alt="image" src="https://github.com/user-attachments/assets/ecbe0d37-31a3-4d49-9358-247b87d3ed32" />
+as usual right click extract the zip file then in the first folder the exe for the program
+https://drive.google.com/file/d/1mIQuzsGvnfgiVQpHv19sqfjnuuT0BK0J/view?usp=drive_link
 
 ## Features
 * **5 Pillars of Control:** Information, Economics, Health, Social, and Control.
